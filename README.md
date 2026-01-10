@@ -1,58 +1,70 @@
-# AILoanPlatform
-The final, high-level structural blueprint for your **Self-Healing, Agentic-First Servicing Platform**.
+This technical specification serves as the master blueprint for your agentic-first mortgage servicing platform. It unifies **Temporal** for durable execution, **LangGraph** for cognitive reasoning, **Databricks** for data intelligence, and **immudb** for immutable trust.
 
 ---
 
-## 1. The Grand Unified Architecture
+# Architecture Blueprint: Agentic Mortgage Servicing Platform (v2026.1)
 
-The entire solution is built on a "Triangle of Trust": **Durable Orchestration** (Temporal), **Agentic Intelligence** (LangGraph), and **Governed Data** (Databricks).
+## 1. Executive Summary
 
-### Layer 1: The Durable "Skeleton" (Temporal)
-
-* **The Loan as a Process:** Every loan in your system is an active **Temporal Workflow**. It isn't just a row in a database; it is a running piece of code that lives for the life of the mortgage (15-30 years).
-* **Resilience:** Temporal manages all "timers" (grace periods, RESPA deadlines) and ensures that if a server fails, the loan's state is recovered instantly.
-
-### Layer 2: The Cognitive "Brain" (LangGraph + K8s)
-
-* **Specialized Agent Microservices:** These are your "Worker" pods in Kubernetes. Each pod runs a **LangGraph** instance specialized for a domain:
-* **Escrow Agent:** Negotiates with insurance/tax authorities.
-* **Loss Mit Agent:** Analyzes borrower hardship and calculates modification waterfalls.
-* **Compliance Agent:** The "Veto" service that prevents any action from violating state or federal laws.
-
-
-* **Dynamic Execution:** LangGraph allows these agents to "loop" and "re-plan" when they encounter new data (e.g., a borrower uploads a bank statement that contradicts their previous claim).
-
-### Layer 3: The Data Intelligence "Memory" (Databricks)
-
-* **Medallion Storage:** All raw data (Bronze), cleaned profiles (Silver), and agent-ready features (Gold) are stored in the **Lakehouse**.
-* **Unity Catalog:** This is your "Toolbox." Agents don't query databases directly; they call **Unity Catalog Functions**, which provides built-in governance, security, and data lineage for every decision an agent makes.
-* **Vector Search:** Serves as the agent's "Digital Law Library," allowing them to ground their reasoning in the latest RESPA/TILA documents.
-
-### Layer 4: The Audit & DevSecOps "Guardrails"
-
-* **Immutable Ledger (Amazon QLDB):** The final source of truth. Every agent decision and financial transaction is committed here, creating a cryptographically verifiable paper trail for auditors.
-* **Agentic CI/CD:** Your DevSecOps pipeline uses agents as gatekeepers. They scan code, auto-remediate security vulnerabilities, and use **Temporal** to manage safe, automated rollouts to production.
+Traditional servicing systems (like Sagent/MSP) are built on "Batch & Sync" logic. This platform replaces that with **Real-Time Durable Execution**. The "Loan" is no longer a row in a database; it is a **Durable Workflow** governed by specialized AI agents.
 
 ---
 
-## 2. Component Interaction: The "Missed Payment" Flow
+## 2. High-Level System Topology
 
-To see how they work together, consider a borrower who misses a payment:
+### A. Durable Orchestration Layer (Temporal)
 
-1. **Temporal** triggers a `DelinquencyWorkflow` at 12:01 AM on Day 16.
-2. **Supervisor Agent (LangGraph)** pulls the borrower's "Gold" profile from **Databricks**.
-3. **Compliance Agent** queries **Vector Search** for the specific state's late fee laws.
-4. **Loss Mit Agent** detects the borrower is in a disaster zone (FEMA data in Databricks) and suggests a "Deferment" instead of a late fee.
-5. **Human-in-the-Loop** is signaled via **Temporal** to approve the deferment.
-6. **Ledger (QLDB)** records the reasoning and the approved deferment, providing a "Glass Box" view of the decision.
+* **Role:** The Skeleton. It manages the "Clock" and "State" of the loan lifecycle.
+* **Mechanism:** Every mortgage is a `LoanLifecycleWorkflow`. Temporal manages 30-day billing loops, 90-day loss-mit trial periods, and 15-year escrow forecasts.
+* **Key Advantage:** "Infinite Retries." If an external Credit Bureau API is down, Temporal pauses the workflow and retries with exponential backoff without losing a single byte of state.
+
+### B. Cognitive Reasoning Layer (LangGraph)
+
+* **Role:** The Brain. It performs domain-specific "Reasoning Loops."
+* **Mechanism:** Specialized agent microservices (Escrow, Loss Mit, Compliance) run as K8s pods.
+* **Interaction:** Temporal calls a LangGraph agent as an "Activity." The agent "thinks," uses tools, and returns a structured decision to the workflow.
+
+### C. Data Intelligence Layer (Databricks)
+
+* **Role:** The Memory and Governance.
+* **Mechanism:** Stores the **Gold Medallion** tables.
+* **Unity Catalog:** Provides **Attribute-Based Access Control (ABAC)**, ensuring agents only see the specific PII (SSNs, income) they are legally permitted to access for a specific task.
+* **Vector Search:** Acts as the agent's "Digital Law Book," grounding all AI decisions in the latest RESPA/TILA/FHA guidelines.
+
+### D. The Proof Layer (immudb)
+
+* **Role:** The Truth. Provides cryptographic non-repudiation.
+* **Mechanism:** A **Sidecar Ledger** inside every worker pod.
+* **Cryptographic Anchor:** Every time an agent makes a decision (e.g., "Waive Late Fee"), a hash of that decision is committed to immudb's Merkle Tree. This proves to auditors that the record hasn't been "scrubbed" by a DBA later.
 
 ---
 
-### Comparison: Your Startup vs. The Legacy Incumbents
+## 3. The "Self-Healing" DevSecOps Pipeline
 
-| Feature | Legacy Systems (Sagent/Black Knight) | Your Agentic Platform |
+The infrastructure itself is maintained by agents controlling a container-native pipeline.
+
+1. **Sentry Agent:** Continuously scans the `immudb` state against `Databricks` logs. If a discrepancy is found (indicating tampering), it "freezes" the Temporal workflow.
+2. **Compliance Agent:** Acts as the final CI/CD gate. It verifies that new code deployments for the "Escrow Agent" match the updated 2026 IRS tax code regulations.
+3. **Temporal Deployment Pilot:** Manages a "Blue/Green" rollout. If the **SRE Agent** detects a 0.1% increase in "Calculation Mismatches" in the new version, Temporal autonomously rolls back the entire cluster to the last "Known Good State."
+
+---
+
+## 4. Operational Comparison: Startup vs. Legacy
+
+| Component | Legacy Incumbent (Sagent/MSP) | Your Agentic Platform |
 | --- | --- | --- |
-| **Data Processing** | Nightly Batch Cycles | **Real-Time Event Streams** |
-| **System of Record** | Relational Database (Mutable) | **Immutable Ledger (Provable)** |
-| **Logic** | Static, Hard-Coded Rules | **Autonomous Agents (Reasoning)** |
-| **Scalability** | Manual Human Intervention | **Durable Execution (Auto-Scaling)** |
+| **Workflow** | Static Cron Jobs / Batch Scripts | **Durable Temporal Workflows** |
+| **Logic** | Hard-coded IF/THEN rules | **LangGraph Probabilistic Reasoning** |
+| **Audit** | Relational Logs (Editable by DBAs) | **Immutable Ledger (Cryptographic Proof)** |
+| **Data Access** | Direct Database Connections | **Unity Catalog Governed Tools** |
+| **Latency** | 24-hour Batch Windows | **Real-Time Event-Driven** |
+
+---
+
+## 5. Security & Trust Model
+
+* **Zero-Trust Sidecar:** By running `immudb` as a sidecar, we eliminate network-level tampering.
+* **Decision Signatures:** Every agentic decision is cryptographically signed by the **Agent's KMS Key** before being written to the ledger.
+* **Glass Box Transparency:** An auditor can click a link in the UI to see the exact **Databricks Lineage** and **Temporal History** for any fee or modification, verified against the `immudb` digest.
+
+---
